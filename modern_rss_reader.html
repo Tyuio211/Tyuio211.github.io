@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EchoReader - Premium Single Page RSS Feed Client</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Georgia', 'Cambria', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e4e4e7;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4d4d8;
+        }
+        /* Custom animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-sans transition-colors duration-200">
+
+    <div class="h-full flex flex-col md:flex-row overflow-hidden" id="app">
+        
+        <!-- SIDEBAR CONTAINER -->
+        <aside id="sidebar" class="w-full md:w-80 flex-shrink-0 bg-white dark:bg-zinc-900 border-b md:border-b-0 md:border-r border-slate-200 dark:border-zinc-800 flex flex-col h-16 md:h-full z-30 transition-all duration-300">
+            <!-- Sidebar Header / Brand -->
+            <div class="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-brand-500 rounded-xl text-white shadow-lg shadow-brand-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none tracking-tight">EchoReader</h1>
+                        <span class="text-xs text-slate-400 dark:text-zinc-500 font-medium">Modern RSS Engine</span>
+                    </div>
+                </div>
+                <!-- Mobile Actions (Menu toggle, Add Feed) -->
+                <div class="flex items-center gap-1 md:hidden">
+                    <button onclick="toggleMobileSidebar()" class="p-2 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg">
+                        <svg id="menuIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Sidebar Content Area -->
+            <div id="sidebarContent" class="hidden md:flex flex-col flex-1 overflow-y-auto p-4 space-y-6">
+                <!-- Action Tools -->
+                <div class="space-y-2">
+                    <button onclick="openAddFeedModal()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-medium rounded-xl shadow-md transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                        Subscribe Feed
+                    </button>
+                    <button onclick="openDiscoverModal()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-medium rounded-xl transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Discover Hub
+                    </button>
+                </div>
+
+                <!-- Main Collections Navigation -->
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block mb-2 px-2">Library</span>
+                    <nav class="space-y-1">
+                        <button onclick="filterArticles('all')" id="nav-all" class="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-brand-50 dark:bg-zinc-800/80 text-brand-700 dark:text-brand-400 font-medium transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                                All Articles
+                            </span>
+                            <span id="badge-all" class="text-xs bg-brand-200/50 dark:bg-brand-950/50 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                        <button onclick="filterArticles('unread')" id="nav-unread" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800/50 font-medium transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                Unread
+                            </span>
+                            <span id="badge-unread" class="text-xs bg-slate-200/50 dark:bg-zinc-800 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                        <button onclick="filterArticles('bookmarks')" id="nav-bookmarks" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800/50 font-medium transition-colors">
+                            <span class="flex items-center gap-2.5">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                                Reading List
+                            </span>
+                            <span id="badge-bookmarks" class="text-xs bg-slate-200/50 dark:bg-zinc-800 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Active Subscriptions List -->
+                <div class="flex-1 flex flex-col min-h-[200px]">
+                    <div class="flex items-center justify-between mb-2 px-2">
+                        <span class="text-xs font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">Subscriptions</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="refreshAllFeeds()" class="p-1 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300" title="Refresh all feeds">
+                                <svg id="refreshAllIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 11H15"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="feedsList" class="space-y-1 flex-1">
+                        <!-- Dynamically populated subscriptions list -->
+                        <div class="text-center py-6 text-slate-400 dark:text-zinc-500 text-sm">
+                            No channels subscribed yet.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Theme Settings Footer -->
+                <div class="border-t border-slate-200 dark:border-zinc-800 pt-4 flex items-center justify-between text-xs text-slate-400 dark:text-zinc-500">
+                    <button onclick="toggleTheme()" class="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-600 dark:text-zinc-300 transition-colors">
+                        <span id="themeIcon">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
+                        </span>
+                        <span id="themeLabel">Light Mode</span>
+                    </button>
+                    <button onclick="exportOpml()" class="hover:underline hover:text-slate-600 dark:hover:text-zinc-300">Export OPML</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT WORKSPACE -->
+        <main class="flex-1 flex flex-col md:flex-row overflow-hidden h-[calc(100vh-4rem)] md:h-full relative">
+            
+            <!-- MIDDLE COLUMN: ARTICLES STREAM -->
+            <section id="articlesColumn" class="w-full md:w-96 lg:w-[420px] flex-shrink-0 border-r border-slate-200 dark:border-zinc-800 flex flex-col h-full bg-white dark:bg-zinc-900/40 z-10 transition-transform duration-300">
+                <!-- Search & Actions Topbar -->
+                <div class="p-4 border-b border-slate-200 dark:border-zinc-800 flex flex-col gap-3 bg-white dark:bg-zinc-900 flex-shrink-0">
+                    <div class="relative">
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search articles..." class="w-full bg-slate-50 dark:bg-zinc-800/80 pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200/80 dark:border-zinc-700/60 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-500/80 transition-all text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500">
+                        <div class="absolute left-3 top-2.5 text-slate-400 dark:text-zinc-500 pointer-events-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-semibold text-slate-400 dark:text-zinc-500 px-1">
+                        <span id="articlesStreamTitle">All Articles</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="markAllAsRead()" class="hover:text-brand-600 dark:hover:text-brand-400 flex items-center gap-1 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Mark all read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Article List Container -->
+                <div id="articlesList" class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800/60">
+                    <!-- Dynamic state loaders and articles are injected here -->
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-zinc-500 p-8 text-center">
+                        <svg class="w-12 h-12 mb-3 text-slate-300 dark:text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                        <p class="font-medium">No articles available</p>
+                        <p class="text-xs mt-1">Please select, add, or sync your channels to fetch feeds.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT COLUMN: ARTICLE VIEWER (MAIN PANE) -->
+            <section id="viewerColumn" class="absolute md:relative inset-0 md:flex flex-col flex-1 bg-white dark:bg-zinc-900 z-20 md:z-0 translate-x-full md:translate-x-0 transition-transform duration-300 shadow-2xl md:shadow-none">
+                <!-- Viewer Top Bar Actions -->
+                <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-zinc-800 flex-shrink-0 bg-white dark:bg-zinc-900/95 sticky top-0 z-10 backdrop-blur">
+                    <!-- Mobile Back Navigation Button -->
+                    <button onclick="closeViewer()" class="md:hidden flex items-center gap-1.5 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        Back
+                    </button>
+
+                    <!-- Content Controls (Text Options, Bookmark Toggle, Open Original URL) -->
+                    <div class="hidden md:block">
+                        <div id="viewerFeedInfo" class="text-xs font-semibold text-slate-400 dark:text-zinc-500 tracking-wider uppercase">
+                            Article Viewer
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <!-- Bookmarks -->
+                        <button id="bookmarkButton" onclick="toggleCurrentBookmark()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800" title="Bookmark Article">
+                            <svg id="bookmarkIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                        </button>
+                        <!-- Typography size adjustments -->
+                        <button onclick="adjustFontSize(-1)" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800" title="Decrease font size">
+                            <span class="text-sm font-bold">A-</span>
+                        </button>
+                        <button onclick="adjustFontSize(1)" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800" title="Increase font size">
+                            <span class="text-base font-bold">A+</span>
+                        </button>
+                        <!-- Open Original link -->
+                        <a id="externalLink" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold rounded-lg transition-colors" title="Open external website link">
+                            <span>Open Link</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Scrollable Reader Pane -->
+                <div id="articleContentArea" class="flex-1 overflow-y-auto p-6 md:p-10 bg-white dark:bg-zinc-900">
+                    <div id="viewerPlaceholder" class="flex flex-col items-center justify-center h-full text-slate-400 dark:text-zinc-500 max-w-md mx-auto text-center py-20">
+                        <div class="p-4 bg-slate-50 dark:bg-zinc-800/50 rounded-full mb-4">
+                            <svg class="w-16 h-16 text-slate-300 dark:text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800 dark:text-zinc-200 mb-2">Ready for reading</h2>
+                        <p class="text-sm">Select any article in the stream on the left to display its full content layout here with beautiful typography formatting.</p>
+                    </div>
+
+                    <!-- Live Render Area -->
+                    <article id="liveViewer" class="max-w-3xl mx-auto hidden animate-fade-in">
+                        <header class="mb-8 pb-6 border-b border-slate-100 dark:border-zinc-800">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span id="viewMetaCategory" class="px-2 py-0.5 text-xs font-semibold bg-brand-50 dark:bg-brand-950/30 text-brand-600 dark:text-brand-400 rounded-md uppercase tracking-wider">Feed</span>
+                                <time id="viewMetaDate" class="text-xs text-slate-400 dark:text-zinc-500 font-medium">Jan 1, 2026</time>
+                            </div>
+                            <h1 id="viewMetaTitle" class="text-2xl md:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-tight font-serif mb-4">Article Headline</h1>
+                            <div class="flex items-center gap-3">
+                                <span id="viewMetaAuthor" class="text-xs font-medium text-slate-500 dark:text-zinc-400">By Author Name</span>
+                            </div>
+                        </header>
+                        
+                        <!-- Main typography content -->
+                        <div id="viewMainBody" class="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-zinc-300 font-serif leading-relaxed text-lg space-y-4">
+                            <!-- Injected post HTML content goes here -->
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- GLOBAL MESSAGE NOTIFICATION BAR -->
+    <div id="toastMessage" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 px-5 py-3.5 bg-slate-900 dark:bg-zinc-800 text-white rounded-xl shadow-2xl border border-slate-700/50">
+        <span id="toastIcon"></span>
+        <p id="toastText" class="text-sm font-medium"></p>
+    </div>
+
+    <!-- MODAL: ADD NEW FEED DIALOG -->
+    <div id="addFeedModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-200">
+        <div class="bg-white dark:bg-zinc-950 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-200/80 dark:border-zinc-800 transform scale-95 transition-all duration-200">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 dark:text-white text-lg">Subscribe New RSS Feed</h3>
+                <button onclick="closeAddFeedModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label for="feedInputUrl" class="block text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase mb-2">RSS XML or Atom Link</label>
+                    <input type="url" id="feedInputUrl" placeholder="https://news.ycombinator.com/rss" class="w-full bg-slate-50 dark:bg-zinc-900 px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label for="feedInputCategory" class="block text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase mb-2">Category (Optional)</label>
+                    <input type="text" id="feedInputCategory" placeholder="Technology, News, Science..." class="w-full bg-slate-50 dark:bg-zinc-900 px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-slate-50 dark:bg-zinc-900/50 border-t border-slate-100 dark:border-zinc-800 flex justify-end gap-3">
+                <button onclick="closeAddFeedModal()" class="px-4 py-2 bg-transparent text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 font-semibold rounded-xl text-sm transition-colors">Cancel</button>
+                <button id="addFeedSubmitBtn" onclick="handleAddFeed()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm transition-colors flex items-center gap-1.5 shadow-md">
+                    Subscribe
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DISCOVER FEEDS HUB -->
+    <div id="discoverModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-200">
+        <div class="bg-white dark:bg-zinc-950 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-200/80 dark:border-zinc-800 transform scale-95 transition-all duration-200 max-h-[90vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-lg">Curated Discover Hub</h3>
+                    <p class="text-xs text-slate-400 dark:text-zinc-500">Subscribe directly to popular, reliable feeds hand-picked for quality.</p>
+                </div>
+                <button onclick="closeDiscoverModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Grid of Discoverable Curated Feeds -->
+            <div class="p-6 overflow-y-auto space-y-6">
+                <!-- OPML Import Tool inside Hub -->
+                <div class="bg-brand-50/50 dark:bg-brand-950/20 rounded-xl p-4 border border-brand-100 dark:border-brand-950/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-left">
+                        <h4 class="font-semibold text-brand-900 dark:text-brand-300 text-sm">Have an OPML file?</h4>
+                        <p class="text-xs text-slate-500 dark:text-zinc-400">Import your existing feed subscriptions directly in one click.</p>
+                    </div>
+                    <label class="cursor-pointer bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <span>Import OPML</span>
+                        <input type="file" id="opmlFileInput" onchange="importOpml(event)" class="hidden" accept=".opml,.xml">
+                    </label>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="discoverFeedsGrid">
+                        <!-- Curated categories loaded from JS library -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core Curated Feeds Collection
+        const CURATED_FEEDS = [
+            { name: 'Hacker News', category: 'Technology', url: 'https://news.ycombinator.com/rss', desc: 'Popular tech startup & hacking stories curated by the community.' },
+            { name: 'TechCrunch', category: 'Technology', url: 'https://techcrunch.com/feed/', desc: 'Technology news and analysis with a focus on founders and startup ecosystems.' },
+            { name: 'NASA Breaking News', category: 'Science', url: 'https://www.nasa.gov/feed/', desc: 'Latest updates on space exploration, astronauts, and celestial findings.' },
+            { name: 'Wired Top Stories', category: 'Technology', url: 'https://www.wired.com/feed/rss', desc: 'Wired articles looking at technology and science from deep cultural standpoints.' },
+            { name: 'BBC News Home', category: 'News', url: 'http://feeds.bbci.co.uk/news/rss.xml', desc: 'Comprehensive news covering global headlines and investigative reporting.' },
+            { name: 'Scientific American', category: 'Science', url: 'https://www.scientificamerican.com/feed/', desc: 'Expert updates on scientific advancements and research breakthrough reports.' },
+            { name: 'Design Milk', category: 'Design', url: 'https://design-milk.com/feed/', desc: 'Beautiful daily editorial posts on design, architecture, interior and art.' },
+            { name: 'Smashing Magazine', category: 'Design', url: 'https://www.smashingmagazine.com/feed/', desc: 'Professional insights, tips and tricks for web designers and front-end developers.' }
+        ];
+
+        // Global State variables
+        let state = {
+            feeds: [],             // { id, url, title, category, lastFetched }
+            articles: [],          // Parsed article documents loaded
+            readArticles: new Set(),// Set of unique article link/GUID strings
+            bookmarks: [],         // Copy of bookmarked article entities
+            filter: 'all',         // 'all', 'unread', 'bookmarks', or string category name or feedId
+            searchQuery: '',       // Active search input
+            selectedArticleId: null,// Active full-viewed article GUID
+            fontSizeMultiplier: 0,  // Reader view font sizing offsets (-2 to 4)
+            theme: 'light',         // 'light' or 'dark'
+            activeProxyIndex: 0     // Rotational proxy system
+        };
+
+        // Built-in list of multiple redundant open access CORS proxies to bypass CORS in sandboxed environments
+        const CORS_PROXIES = [
+            {
+                name: 'AllOrigins JSON Proxy',
+                getUrl: url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                parse: async (res) => {
+                    const json = await res.json();
+                    if (!json || !json.contents) throw new Error("Empty AllOrigins contents received.");
+                    return json.contents;
+                }
+            },
+            {
+                name: 'CorsProxy.io',
+                getUrl: url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+                parse: async (res) => {
+                    const text = await res.text();
+                    if (!text) throw new Error("Empty CorsProxy.io content body.");
+                    return text;
+                }
+            },
+            {
+                name: 'CodeTabs API Proxy',
+                getUrl: url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+                parse: async (res) => {
+                    const text = await res.text();
+                    if (!text) throw new Error("Empty CodeTabs content body.");
+                    return text;
+                }
+            },
+            {
+                name: 'AllOrigins Raw Proxy',
+                getUrl: url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+                parse: async (res) => {
+                    const text = await res.text();
+                    if (!text) throw new Error("Empty AllOrigins raw content body.");
+                    return text;
+                }
+            }
+        ];
+
+        // Main Init hook
+        window.onload = function() {
+            loadStateFromStorage();
+            applyTheme();
+            renderSidebar();
+            renderArticles();
+            setupDiscoverHub();
+
+            // Set default mock feeds on startup if feedlist is entirely empty
+            if (state.feeds.length === 0) {
+                // Pre-populate with hacker news and nasa breaking news so it looks great initially
+                subscribeFeed('https://news.ycombinator.com/rss', 'Technology');
+                subscribeFeed('https://www.nasa.gov/feed/', 'Science');
+                showToast("Added starter feeds! Feel free to subscribe more.", "info");
+            } else {
+                refreshAllFeeds();
+            }
+        };
+
+        // Storage controllers
+        function saveStateToStorage() {
+            try {
+                localStorage.setItem('echo_feeds', JSON.stringify(state.feeds));
+                localStorage.setItem('echo_read', JSON.stringify(Array.from(state.readArticles)));
+                localStorage.setItem('echo_bookmarks', JSON.stringify(state.bookmarks));
+                localStorage.setItem('echo_settings', JSON.stringify({
+                    theme: state.theme,
+                    fontSizeMultiplier: state.fontSizeMultiplier
+                }));
+            } catch (err) {
+                console.error("Storage save issue", err);
+            }
+        }
+
+        function loadStateFromStorage() {
+            try {
+                const feeds = localStorage.getItem('echo_feeds');
+                const read = localStorage.getItem('echo_read');
+                const bookmarks = localStorage.getItem('echo_bookmarks');
+                const settings = localStorage.getItem('echo_settings');
+
+                if (feeds) state.feeds = JSON.parse(feeds);
+                if (read) state.readArticles = new Set(JSON.parse(read));
+                if (bookmarks) state.bookmarks = JSON.parse(bookmarks);
+                if (settings) {
+                    const parsed = JSON.parse(settings);
+                    state.theme = parsed.theme || 'light';
+                    state.fontSizeMultiplier = parsed.fontSizeMultiplier || 0;
+                }
+            } catch (err) {
+                console.error("Storage parsing issue", err);
+            }
+        }
+
+        // Toast Alerts system
+        function showToast(text, type = 'info') {
+            const toast = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+            const textEl = document.getElementById('toastText');
+
+            textEl.textContent = text;
+            
+            // Icon styling matching toast type
+            if (type === 'success') {
+                icon.innerHTML = `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else if (type === 'error') {
+                icon.innerHTML = `<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            } else {
+                icon.innerHTML = `<svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            }
+
+            toast.style.transform = "translateY(0px)";
+            toast.style.opacity = "1";
+            toast.style.pointerEvents = "auto";
+
+            setTimeout(() => {
+                toast.style.transform = "translateY(12px)";
+                toast.style.opacity = "0";
+                toast.style.pointerEvents = "none";
+            }, 3500);
+        }
+
+        // Sidebar rendering
+        function renderSidebar() {
+            const feedsContainer = document.getElementById('feedsList');
+            feedsContainer.innerHTML = '';
+
+            // Update collection count numbers
+            const totalUnread = state.articles.filter(a => !state.readArticles.has(a.id)).length;
+            document.getElementById('badge-all').textContent = state.articles.length;
+            document.getElementById('badge-unread').textContent = totalUnread;
+            document.getElementById('badge-bookmarks').textContent = state.bookmarks.length;
+
+            if (state.feeds.length === 0) {
+                feedsContainer.innerHTML = `
+                    <div class="text-center py-6 text-slate-400 dark:text-zinc-500 text-xs">
+                        No feeds subscribed yet.
+                    </div>
+                `;
+                return;
+            }
+
+            // Organize by Categories
+            const categories = {};
+            state.feeds.forEach(feed => {
+                const cat = feed.category || 'General';
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(feed);
+            });
+
+            // Populate feeds by categories
+            for (const [catName, feeds] of Object.entries(categories)) {
+                const categorySection = document.createElement('div');
+                categorySection.className = 'mb-3';
+                categorySection.innerHTML = `
+                    <div class="flex items-center justify-between px-2 py-1 cursor-pointer group">
+                        <span class="text-[11px] font-bold text-slate-400 dark:text-zinc-500 tracking-wider uppercase">${catName}</span>
+                    </div>
+                    <div class="space-y-0.5 mt-1" id="cat-group-${catName.replace(/\s+/g, '')}"></div>
+                `;
+                feedsContainer.appendChild(categorySection);
+
+                const groupContainer = categorySection.querySelector(`#cat-group-${catName.replace(/\s+/g, '')}`);
+
+                feeds.forEach(feed => {
+                    const unreadCount = state.articles.filter(a => a.feedId === feed.id && !state.readArticles.has(a.id)).length;
+                    const isActive = state.filter === feed.id;
+
+                    const feedBtn = document.createElement('div');
+                    feedBtn.className = `group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm transition-all cursor-pointer ${isActive ? 'bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white font-medium' : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/30'}`;
+                    feedBtn.innerHTML = `
+                        <div onclick="filterArticles('${feed.id}')" class="flex-1 flex items-center gap-2 truncate">
+                            <span class="w-2 h-2 rounded-full flex-shrink-0 ${unreadCount > 0 ? 'bg-brand-500' : 'bg-slate-300 dark:bg-zinc-700'}"></span>
+                            <span class="truncate block text-xs">${feed.title}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            ${unreadCount > 0 ? `<span class="text-[10px] bg-brand-100 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 px-1.5 py-0.2 rounded-full font-bold">${unreadCount}</span>` : ''}
+                            <button onclick="unsubscribeFeed('${feed.id}')" class="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 rounded transition-opacity" title="Unsubscribe Feed">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    groupContainer.appendChild(feedBtn);
+                });
+            }
+
+            // Sync navigation highlighters
+            ['all', 'unread', 'bookmarks'].forEach(type => {
+                const el = document.getElementById(`nav-${type}`);
+                if (!el) return;
+                if (state.filter === type) {
+                    el.className = "w-full flex items-center justify-between px-3 py-2 rounded-lg bg-brand-50 dark:bg-zinc-800 text-brand-700 dark:text-brand-400 font-medium transition-colors";
+                } else {
+                    el.className = "w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800/50 font-medium transition-colors";
+                }
+            });
+        }
+
+        // Filtering controllers
+        function filterArticles(type) {
+            state.filter = type;
+            state.selectedArticleId = null;
+            renderSidebar();
+            renderArticles();
+            document.getElementById('liveViewer').classList.add('hidden');
+            document.getElementById('viewerPlaceholder').classList.remove('hidden');
+
+            // Set Stream Title Label
+            const streamLabel = document.getElementById('articlesStreamTitle');
+            if (type === 'all') streamLabel.textContent = "All Articles";
+            else if (type === 'unread') streamLabel.textContent = "Unread Only";
+            else if (type === 'bookmarks') streamLabel.textContent = "Bookmarks Stream";
+            else {
+                const targetFeed = state.feeds.find(f => f.id === type);
+                streamLabel.textContent = targetFeed ? targetFeed.title : "Articles Stream";
+            }
+
+            // Close mobile sidebar if sliding
+            if (window.innerWidth < 768) {
+                toggleMobileSidebar(false);
+            }
+        }
+
+        // Filtering & Search Evaluator
+        function getFilteredArticles() {
+            let list = [];
+            if (state.filter === 'all') {
+                list = [...state.articles];
+            } else if (state.filter === 'unread') {
+                list = state.articles.filter(a => !state.readArticles.has(a.id));
+            } else if (state.filter === 'bookmarks') {
+                list = [...state.bookmarks];
+            } else {
+                // By Feed ID
+                list = state.articles.filter(a => a.feedId === state.filter);
+            }
+
+            // Apply text searching filter
+            if (state.searchQuery.trim() !== '') {
+                const q = state.searchQuery.toLowerCase();
+                list = list.filter(a => 
+                    (a.title && a.title.toLowerCase().includes(q)) || 
+                    (a.content && a.content.toLowerCase().includes(q)) ||
+                    (a.author && a.author.toLowerCase().includes(q))
+                );
+            }
+
+            // Sort by Date Descending
+            return list.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        }
+
+        // Render articles to the middle panel list
+        function renderArticles() {
+            const listContainer = document.getElementById('articlesList');
+            listContainer.innerHTML = '';
+            
+            const articles = getFilteredArticles();
+
+            if (articles.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-zinc-500 p-8 text-center">
+                        <svg class="w-10 h-10 mb-2.5 text-slate-300 dark:text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <p class="font-semibold text-sm">No matched results found</p>
+                        <p class="text-xs mt-1">Try resetting search parameters or refresh to sync latest news.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            articles.forEach(article => {
+                const isRead = state.readArticles.has(article.id);
+                const isSelected = state.selectedArticleId === article.id;
+                const formattedDate = formatDateString(article.date);
+                
+                const card = document.createElement('div');
+                card.className = `p-4 cursor-pointer border-b border-slate-100 dark:border-zinc-800/60 transition-all select-none ${isSelected ? 'bg-brand-50/80 dark:bg-brand-950/20 border-l-4 border-l-brand-500' : 'hover:bg-slate-50/70 dark:hover:bg-zinc-800/20'}`;
+                card.onclick = () => selectArticle(article);
+
+                // Quick strip html from summary excerpt
+                let excerpt = article.excerpt || article.content || '';
+                excerpt = excerpt.replace(/<[^>]*>/g, '').substring(0, 110) + '...';
+
+                card.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 mt-1">
+                            <span class="w-2.5 h-2.5 rounded-full block ${isRead ? 'bg-transparent border border-slate-300 dark:border-zinc-700' : 'bg-brand-500'}"></span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 mb-1 text-[10px] font-bold text-slate-400 dark:text-zinc-500 tracking-wide uppercase">
+                                <span class="truncate max-w-[120px]">${article.feedTitle || 'Unknown Feed'}</span>
+                                <span>•</span>
+                                <time>${formattedDate}</time>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-zinc-100 leading-snug line-clamp-2 ${isRead ? 'font-normal opacity-85' : 'font-extrabold'}">${article.title}</h4>
+                            <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1 line-clamp-2 leading-relaxed">${excerpt}</p>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function handleSearch() {
+            state.searchQuery = document.getElementById('searchInput').value;
+            renderArticles();
+        }
+
+        // Selecting and displaying a detailed article
+        function selectArticle(article) {
+            state.selectedArticleId = article.id;
+            state.readArticles.add(article.id);
+            saveStateToStorage();
+
+            // Render current highlighted cards state
+            renderSidebar();
+            renderArticles();
+
+            // Populate Reading panel
+            document.getElementById('viewerPlaceholder').classList.add('hidden');
+            document.getElementById('liveViewer').classList.remove('hidden');
+
+            document.getElementById('viewMetaCategory').textContent = article.feedTitle || 'General';
+            document.getElementById('viewMetaDate').textContent = formatDateString(article.date, true);
+            document.getElementById('viewMetaTitle').textContent = article.title;
+            document.getElementById('viewMetaAuthor').textContent = article.author ? `By ${article.author}` : '';
+            
+            // Clean content inject
+            const contentContainer = document.getElementById('viewMainBody');
+            contentContainer.innerHTML = article.content || '<p class="text-slate-400">No content details available for this story. Please follow original link.</p>';
+            
+            // Re-style external elements injected (e.g. force styling for image links, margins)
+            const mediaList = contentContainer.querySelectorAll('img');
+            mediaList.forEach(img => {
+                img.className = "max-w-full h-auto rounded-xl mx-auto my-6 shadow-md border dark:border-zinc-800";
+                img.setAttribute('onerror', 'this.style.display="none"'); // hide broken media
+            });
+
+            const linkList = contentContainer.querySelectorAll('a');
+            linkList.forEach(a => {
+                a.className = "text-brand-600 dark:text-brand-400 hover:underline inline-flex items-center gap-0.5 font-semibold";
+                a.setAttribute('target', '_blank');
+                a.setAttribute('rel', 'noopener noreferrer');
+            });
+
+            // Adjust size properties to matches current font settings
+            applyReaderFontStyles();
+
+            // Setup external action button
+            const ext = document.getElementById('externalLink');
+            ext.href = article.link || '#';
+
+            // Sync bookmark toggle UI
+            updateBookmarkButtonUi();
+
+            // Slide right column into view for mobile screens
+            if (window.innerWidth < 768) {
+                const viewer = document.getElementById('viewerColumn');
+                viewer.classList.remove('translate-x-full');
+            }
+        }
+
+        function closeViewer() {
+            const viewer = document.getElementById('viewerColumn');
+            viewer.classList.add('translate-x-full');
+        }
+
+        // Bookmark controls
+        function toggleCurrentBookmark() {
+            if (!state.selectedArticleId) return;
+
+            // Find either in main stream or bookmarks
+            let target = state.articles.find(a => a.id === state.selectedArticleId);
+            if (!target) target = state.bookmarks.find(b => b.id === state.selectedArticleId);
+
+            if (!target) return;
+
+            const existingIndex = state.bookmarks.findIndex(b => b.id === target.id);
+            if (existingIndex > -1) {
+                state.bookmarks.splice(existingIndex, 1);
+                showToast("Removed from Reading List", "info");
+            } else {
+                state.bookmarks.push(target);
+                showToast("Added to Reading List", "success");
+            }
+
+            saveStateToStorage();
+            updateBookmarkButtonUi();
+            renderSidebar();
+            if (state.filter === 'bookmarks') renderArticles();
+        }
+
+        function updateBookmarkButtonUi() {
+            const isBookmarked = state.bookmarks.some(b => b.id === state.selectedArticleId);
+            const btn = document.getElementById('bookmarkButton');
+            const icon = document.getElementById('bookmarkIcon');
+
+            if (isBookmarked) {
+                btn.className = "p-2 text-amber-500 dark:text-amber-400 rounded-lg bg-amber-50 dark:bg-amber-950/20";
+                icon.innerHTML = `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`;
+            } else {
+                btn.className = "p-2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800";
+                icon.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`;
+            }
+        }
+
+        // Typography Controller
+        function adjustFontSize(delta) {
+            state.fontSizeMultiplier = Math.max(-2, Math.min(4, state.fontSizeMultiplier + delta));
+            applyReaderFontStyles();
+            saveStateToStorage();
+        }
+
+        function applyReaderFontStyles() {
+            const body = document.getElementById('viewMainBody');
+            if (!body) return;
+
+            // Default size class setup base: text-lg (1.125rem / 18px)
+            const scale = {
+                '-2': 'text-sm leading-relaxed',
+                '-1': 'text-base leading-relaxed',
+                '0': 'text-lg leading-relaxed',
+                '1': 'text-xl leading-relaxed',
+                '2': 'text-2xl leading-relaxed',
+                '3': 'text-3xl leading-relaxed',
+                '4': 'text-4xl leading-relaxed'
+            };
+
+            // Remove existing size declarations
+            body.className = body.className.replace(/text-(sm|base|lg|xl|2xl|3xl|4xl)\s+leading-relaxed/, '');
+            body.className += ` ${scale[state.fontSizeMultiplier] || 'text-lg leading-relaxed'}`;
+        }
+
+        // Cleans XML layout formatting issues to prevent parseFromString exceptions
+        function cleanXmlString(xmlString) {
+            if (!xmlString) return "";
+            let cleaned = xmlString.trim();
+            // Strip leading Byte Order Mark (BOM) if present
+            if (cleaned.charCodeAt(0) === 0xFEFF) {
+                cleaned = cleaned.substring(1);
+            }
+            // Strip leading junk or whitespaces preceding the first tag character '<'
+            const firstTagIdx = cleaned.indexOf('<');
+            if (firstTagIdx > 0) {
+                cleaned = cleaned.substring(firstTagIdx);
+            }
+            return cleaned;
+        }
+
+        // XML Node content retrieval helper with case-insensitive and namespace fallback resolvers
+        function getNodeValue(parentNode, tagName) {
+            if (!parentNode) return "";
+            
+            // 1. Direct tag lookups
+            let nodes = parentNode.getElementsByTagName(tagName);
+            if (!nodes || nodes.length === 0) {
+                nodes = parentNode.getElementsByTagName(tagName.toLowerCase());
+            }
+            if (!nodes || nodes.length === 0) {
+                nodes = parentNode.getElementsByTagName(tagName.toUpperCase());
+            }
+
+            // 2. LocalName/Namespace lookup fallback (handles namespaces like content:encoded)
+            if (!nodes || nodes.length === 0) {
+                const parts = tagName.split(':');
+                const localName = parts[parts.length - 1];
+                const allChildren = parentNode.querySelectorAll('*');
+                for (let i = 0; i < allChildren.length; i++) {
+                    const node = allChildren[i];
+                    if (node.localName && (
+                        node.localName === localName || 
+                        node.localName === localName.toLowerCase() || 
+                        node.localName === localName.toUpperCase()
+                    )) {
+                        return node.textContent.trim();
+                    }
+                }
+            }
+
+            if (nodes && nodes.length > 0) {
+                return nodes[0].textContent.trim();
+            }
+            return "";
+        }
+
+        // Advanced Feed Parser Engine with HTML parsing fallback tolerance
+        function parseFeedContent(xmlText, feedTitle) {
+            const cleanedXml = cleanXmlString(xmlText);
+            const parser = new DOMParser();
+            
+            // 1. Try parsing strictly as XML
+            let xmlDoc = parser.parseFromString(cleanedXml, "text/xml");
+            
+            // 2. Fall back to extremely forgiving HTML parser if XML syntax violations exist
+            const hasParserError = xmlDoc.getElementsByTagName("parsererror").length > 0;
+            if (hasParserError) {
+                console.warn("XML parsing failed with parsererror. Falling back to forgiving HTML parser layout.");
+                xmlDoc = parser.parseFromString(cleanedXml, "text/html");
+            }
+
+            const items = [];
+            let parsedTitle = feedTitle || "";
+
+            // Detect feed type safely using case-insensitive elements for HTML parser compatibility
+            const isRss = xmlDoc.getElementsByTagName("rss").length > 0 || 
+                          xmlDoc.getElementsByTagName("channel").length > 0 ||
+                          xmlDoc.getElementsByTagName("RSS").length > 0 ||
+                          xmlDoc.getElementsByTagName("CHANNEL").length > 0;
+                          
+            const isAtom = xmlDoc.getElementsByTagName("feed").length > 0 ||
+                           xmlDoc.getElementsByTagName("FEED").length > 0;
+
+            if (isRss) {
+                let channelNode = xmlDoc.getElementsByTagName("channel")[0] || 
+                                  xmlDoc.getElementsByTagName("CHANNEL")[0];
+                if (!channelNode) {
+                    channelNode = xmlDoc;
+                }
+                
+                if (!parsedTitle) {
+                    parsedTitle = getNodeValue(channelNode, "title");
+                }
+
+                const rawItems = Array.from(xmlDoc.getElementsByTagName("item")).concat(
+                    Array.from(xmlDoc.getElementsByTagName("ITEM"))
+                );
+
+                for (let i = 0; i < rawItems.length; i++) {
+                    const item = rawItems[i];
+                    const title = getNodeValue(item, "title") || "Untitled Article";
+                    const link = getNodeValue(item, "link");
+                    const date = getNodeValue(item, "pubDate") || 
+                                 getNodeValue(item, "dc:date") || 
+                                 getNodeValue(item, "date") || 
+                                 getNodeValue(item, "pubdate");
+                    const author = getNodeValue(item, "dc:creator") || 
+                                   getNodeValue(item, "author") || 
+                                   getNodeValue(item, "creator") || "";
+                    
+                    let content = getNodeValue(item, "content:encoded") || 
+                                  getNodeValue(item, "description") || 
+                                  getNodeValue(item, "summary") || "";
+                    
+                    const id = getNodeValue(item, "guid") || link || (title + date);
+
+                    items.push({ id, title, link, date, author, content });
+                }
+            } else if (isAtom) {
+                let feedNode = xmlDoc.getElementsByTagName("feed")[0] || 
+                               xmlDoc.getElementsByTagName("FEED")[0];
+                if (!feedNode) feedNode = xmlDoc;
+
+                if (!parsedTitle) {
+                    parsedTitle = getNodeValue(feedNode, "title");
+                }
+
+                const rawEntries = Array.from(xmlDoc.getElementsByTagName("entry")).concat(
+                    Array.from(xmlDoc.getElementsByTagName("ENTRY"))
+                );
+
+                for (let i = 0; i < rawEntries.length; i++) {
+                    const entry = rawEntries[i];
+                    const title = getNodeValue(entry, "title") || "Untitled Entry";
+                    
+                    let link = "";
+                    const linkNodes = entry.getElementsByTagName("link") || entry.getElementsByTagName("LINK");
+                    if (linkNodes && linkNodes.length > 0) {
+                        let hrefFound = false;
+                        for (let j = 0; j < linkNodes.length; j++) {
+                            const rel = linkNodes[j].getAttribute("rel");
+                            if (rel === "alternate" || !rel) {
+                                link = linkNodes[j].getAttribute("href");
+                                hrefFound = true;
+                                break;
+                            }
+                        }
+                        if (!hrefFound) link = linkNodes[0].getAttribute("href");
+                    }
+
+                    const date = getNodeValue(entry, "updated") || 
+                                 getNodeValue(entry, "published") || 
+                                 getNodeValue(entry, "date");
+                    
+                    let author = "";
+                    const authorNode = entry.getElementsByTagName("author")[0] || entry.getElementsByTagName("AUTHOR")[0];
+                    if (authorNode) {
+                        author = getNodeValue(authorNode, "name") || getNodeValue(authorNode, "email") || "";
+                    }
+
+                    let content = getNodeValue(entry, "content") || 
+                                  getNodeValue(entry, "summary") || "";
+                    const id = getNodeValue(entry, "id") || link || (title + date);
+
+                    items.push({ id, title, link, date, author, content });
+                }
+            }
+
+            return {
+                title: parsedTitle,
+                items: items
+            };
+        }
+
+        // Unified Loader that requests, evaluates, and parses feeds through auto-rotating proxies
+        async function fetchAndParseFeed(url, feedTitle = '') {
+            let errors = [];
+            
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                const proxy = CORS_PROXIES[i];
+                const queryUrl = proxy.getUrl(url);
+
+                try {
+                    console.log(`Attempting unified fetch & parse with proxy: ${proxy.name}`);
+                    const res = await fetch(queryUrl);
+                    if (!res.ok) throw new Error(`HTTP status response code ${res.status}`);
+                    
+                    const rawContent = await proxy.parse(res);
+                    if (!rawContent || rawContent.trim() === "") {
+                        throw new Error("Empty body content returned by proxy stream.");
+                    }
+
+                    // Attempt XML or forgiving HTML parsing on raw text
+                    const parsedData = parseFeedContent(rawContent, feedTitle);
+                    
+                    // Validate that we found actual valid feed schema structures
+                    if (parsedData.items.length === 0 && !parsedData.title) {
+                        throw new Error("Response body parsed successfully but found no standard XML feed items.");
+                    }
+
+                    console.log(`Success! Resolved and parsed stream using: ${proxy.name}`);
+                    return {
+                        title: parsedData.title,
+                        items: parsedData.items,
+                        raw: rawContent
+                    };
+                } catch (err) {
+                    console.warn(`Proxy "${proxy.name}" failed:`, err);
+                    errors.push(`${proxy.name}: ${err.message}`);
+                }
+            }
+            throw new Error(`All redundant proxies failed to download or parse the feed. Details:\n- ${errors.join('\n- ')}`);
+        }
+
+        // Subscribe to a target Feed Address
+        async function subscribeFeed(url, category = 'General') {
+            url = url.trim();
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+
+            // Check duplications
+            if (state.feeds.some(f => f.url.toLowerCase() === url.toLowerCase())) {
+                showToast("Already subscribed to this URL", "info");
+                return;
+            }
+
+            const feedId = 'feed_' + Date.now() + Math.random().toString(36).substr(2, 5);
+            
+            try {
+                // Unified loader fetches and parses automatically via the best available proxy
+                const result = await fetchAndParseFeed(url);
+                
+                const newFeed = {
+                    id: feedId,
+                    url,
+                    title: result.title || "Unnamed Channel",
+                    category: category.trim() || 'General',
+                    lastFetched: new Date().toISOString()
+                };
+
+                state.feeds.push(newFeed);
+                
+                // Add feed context parameters to each article
+                const itemsWithContext = result.items.map(item => ({
+                    ...item,
+                    feedId: feedId,
+                    feedTitle: newFeed.title
+                }));
+
+                state.articles = [...state.articles, ...itemsWithContext];
+
+                saveStateToStorage();
+                renderSidebar();
+                renderArticles();
+                showToast(`Subscribed to ${newFeed.title}`, "success");
+            } catch (err) {
+                console.error("Subscription process error", err);
+                showToast("Failed to load feed. Channel may be invalid, offline, or blocked.", "error");
+            }
+        }
+
+        // Unsubscribe from dynamic feed
+        function unsubscribeFeed(feedId) {
+            const feed = state.feeds.find(f => f.id === feedId);
+            if (!feed) return;
+
+            // Remove Feed and related article caches
+            state.feeds = state.feeds.filter(f => f.id !== feedId);
+            state.articles = state.articles.filter(a => a.feedId !== feedId);
+            
+            if (state.filter === feedId) state.filter = 'all';
+
+            saveStateToStorage();
+            renderSidebar();
+            renderArticles();
+            showToast(`Removed subscription channel`, "info");
+        }
+
+        // Refresh All Subscriptions
+        async function refreshAllFeeds() {
+            if (state.feeds.length === 0) return;
+
+            const syncIcon = document.getElementById('refreshAllIcon');
+            syncIcon.classList.add('animate-spin');
+            showToast("Syncing channel streams...", "info");
+
+            let successes = 0;
+            let total = state.feeds.length;
+
+            // Empty old cache matching actual feeds before syncing to avoid duplicates
+            let activeFeedIds = new Set(state.feeds.map(f => f.id));
+            state.articles = state.articles.filter(a => activeFeedIds.has(a.feedId));
+
+            const fetchPromises = state.feeds.map(async (feed) => {
+                try {
+                    const result = await fetchAndParseFeed(feed.url, feed.title);
+                    
+                    const itemsWithContext = result.items.map(item => ({
+                        ...item,
+                        feedId: feed.id,
+                        feedTitle: feed.title
+                    }));
+                    
+                    // Filter out existing ones to prevent overwrite of reads/bookmarks
+                    const currentArticleIds = new Set(state.articles.map(a => a.id));
+                    const newItems = itemsWithContext.filter(item => !currentArticleIds.has(item.id));
+                    
+                    state.articles = [...state.articles, ...newItems];
+                    feed.lastFetched = new Date().toISOString();
+                    successes++;
+                } catch (err) {
+                    console.error(`Sync error on feed ${feed.title}`, err);
+                }
+            });
+
+            await Promise.all(fetchPromises);
+
+            saveStateToStorage();
+            renderSidebar();
+            renderArticles();
+            syncIcon.classList.remove('animate-spin');
+
+            showToast(`Synced ${successes}/${total} streams active`, successes === total ? "success" : "info");
+        }
+
+        function markAllAsRead() {
+            const filtered = getFilteredArticles();
+            filtered.forEach(article => {
+                state.readArticles.add(article.id);
+            });
+            saveStateToStorage();
+            renderSidebar();
+            renderArticles();
+            showToast("Marked all matched entries as read", "success");
+        }
+
+        // Modal management
+        function openAddFeedModal() {
+            const modal = document.getElementById('addFeedModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.remove('scale-95');
+            document.getElementById('feedInputUrl').focus();
+        }
+
+        function closeAddFeedModal() {
+            const modal = document.getElementById('addFeedModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.add('scale-95');
+            // Clean values
+            document.getElementById('feedInputUrl').value = '';
+            document.getElementById('feedInputCategory').value = '';
+        }
+
+        async function handleAddFeed() {
+            const urlInput = document.getElementById('feedInputUrl').value;
+            const catInput = document.getElementById('feedInputCategory').value || 'General';
+            const btn = document.getElementById('addFeedSubmitBtn');
+
+            if (!urlInput) {
+                showToast("Please input feed address link", "error");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Parsing...`;
+
+            await subscribeFeed(urlInput, catInput);
+
+            btn.disabled = false;
+            btn.innerHTML = `Subscribe`;
+            closeAddFeedModal();
+        }
+
+        function openDiscoverModal() {
+            const modal = document.getElementById('discoverModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.remove('scale-95');
+        }
+
+        function closeDiscoverModal() {
+            const modal = document.getElementById('discoverModal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.children[0].classList.add('scale-95');
+        }
+
+        function setupDiscoverHub() {
+            const grid = document.getElementById('discoverFeedsGrid');
+            grid.innerHTML = '';
+
+            CURATED_FEEDS.forEach(item => {
+                const isSubscribed = state.feeds.some(f => f.url.toLowerCase() === item.url.toLowerCase());
+                
+                const card = document.createElement('div');
+                card.className = "p-4 bg-slate-50 dark:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 rounded-xl hover:shadow-md transition-all flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="text-[10px] font-bold px-2 py-0.5 bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 rounded-md uppercase tracking-wider">${item.category}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-900 dark:text-zinc-100 text-sm mb-1">${item.name}</h4>
+                        <p class="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">${item.desc}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200/40 dark:border-zinc-800/60 flex items-center justify-between">
+                        <span class="text-[10px] font-medium text-slate-400 dark:text-zinc-500 max-w-[130px] truncate" title="${item.url}">${item.url}</span>
+                        <button onclick="handleDiscoverSubscribe(this, '${item.url}', '${item.category}')" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 disabled:bg-emerald-600 disabled:opacity-90 text-white font-semibold rounded-lg text-xs transition-colors shadow-sm">
+                            ${isSubscribed ? 'Subscribed ✓' : 'Subscribe'}
+                        </button>
+                    </div>
+                `;
+                if (isSubscribed) {
+                    card.querySelector('button').disabled = true;
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        async function handleDiscoverSubscribe(btn, url, category) {
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
+            await subscribeFeed(url, category);
+            btn.innerHTML = `Subscribed ✓`;
+            btn.className = "px-3 py-1 bg-emerald-600 text-white font-semibold rounded-lg text-xs cursor-default";
+            setupDiscoverHub(); // reload states
+        }
+
+        // Import OPML handler
+        function importOpml(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const xmlText = e.target.result;
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                    
+                    const outlines = xmlDoc.getElementsByTagName("outline");
+                    let count = 0;
+                    
+                    showToast("Starting mass OPML parsing import...", "info");
+
+                    for (let i = 0; i < outlines.length; i++) {
+                        const op = outlines[i];
+                        const xmlUrl = op.getAttribute("xmlUrl");
+                        if (xmlUrl) {
+                            const title = op.getAttribute("title") || op.getAttribute("text") || "OPML Sub";
+                            // Parent nodes category check
+                            let parent = op.parentNode;
+                            let category = "OPML Import";
+                            if (parent && parent.tagName === "outline" && !parent.getAttribute("xmlUrl")) {
+                                category = parent.getAttribute("title") || parent.getAttribute("text") || "OPML Import";
+                            }
+                            
+                            // Check duplication
+                            if (!state.feeds.some(f => f.url.toLowerCase() === xmlUrl.toLowerCase())) {
+                                const feedId = 'feed_' + Date.now() + Math.random().toString(36).substr(2, 5);
+                                state.feeds.push({
+                                    id: feedId,
+                                    url: xmlUrl,
+                                    title: title,
+                                    category: category,
+                                    lastFetched: new Date().toISOString()
+                                });
+                                count++;
+                            }
+                        }
+                    }
+
+                    if (count > 0) {
+                        saveStateToStorage();
+                        renderSidebar();
+                        showToast(`Successfully registered ${count} feeds. Starting sync...`, "success");
+                        closeDiscoverModal();
+                        await refreshAllFeeds();
+                    } else {
+                        showToast("No new feed pointers found inside OPML.", "info");
+                    }
+                } catch (err) {
+                    console.error("OPML Import error", err);
+                    showToast("Failed to parse OPML XML layout structured rules.", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Export OPML compiler
+        function exportOpml() {
+            if (state.feeds.length === 0) {
+                showToast("You have no subscriptions to export.", "info");
+                return;
+            }
+
+            let opml = `<?xml version="1.0" encoding="UTF-8"?>\n<opml version="2.0">\n  <head>\n    <title>EchoReader Subscriptions Export</title>\n  </head>\n  <body>\n`;
+            
+            // Group matching Category
+            const categories = {};
+            state.feeds.forEach(f => {
+                const cat = f.category || 'General';
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(f);
+            });
+
+            for (const [cat, feeds] of Object.entries(categories)) {
+                opml += `    <outline text="${escapeXml(cat)}" title="${escapeXml(cat)}">\n`;
+                feeds.forEach(f => {
+                    opml += `      <outline type="rss" text="${escapeXml(f.title)}" title="${escapeXml(f.title)}" xmlUrl="${escapeXml(f.url)}" htmlUrl="${escapeXml(f.url)}"/>\n`;
+                });
+                opml += `    </outline>\n`;
+            }
+
+            opml += `  </body>\n</opml>`;
+
+            // Create download anchor action
+            const blob = new Blob([opml], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `echoreader-subscriptions-${new Date().toISOString().split('T')[0]}.opml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("OPML subscriptions exported successfully", "success");
+        }
+
+        // XML Safety helper
+        function escapeXml(unsafe) {
+            return unsafe.replace(/[<>&'"]/g, function (c) {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '\'': return '&apos;';
+                    case '"': return '&quot;';
+                }
+            });
+        }
+
+        // Responsive Mobile navigation trigger
+        let sidebarOpen = false;
+        function toggleMobileSidebar(force) {
+            sidebarOpen = force !== undefined ? force : !sidebarOpen;
+            const sidebar = document.getElementById('sidebar');
+            const sidebarContent = document.getElementById('sidebarContent');
+            const menuIcon = document.getElementById('menuIcon');
+
+            if (sidebarOpen) {
+                sidebar.classList.remove('h-16');
+                sidebar.classList.add('h-full');
+                sidebarContent.classList.remove('hidden');
+                sidebarContent.classList.add('flex');
+                menuIcon.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            } else {
+                sidebar.classList.remove('h-full');
+                sidebar.classList.add('h-16');
+                sidebarContent.classList.add('hidden');
+                sidebarContent.classList.remove('flex');
+                menuIcon.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>`;
+            }
+        }
+
+        // Dark/Light Theme Manager
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            applyTheme();
+            saveStateToStorage();
+        }
+
+        function applyTheme() {
+            const root = document.documentElement;
+            const label = document.getElementById('themeLabel');
+            const icon = document.getElementById('themeIcon');
+
+            if (state.theme === 'dark') {
+                root.classList.add('dark');
+                label.textContent = "Dark Mode";
+                icon.innerHTML = `<svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>`;
+            } else {
+                root.classList.remove('dark');
+                label.textContent = "Light Mode";
+                icon.innerHTML = `<svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>`;
+            }
+        }
+
+        // Date string format decorator
+        function formatDateString(dateStr, full = false) {
+            if (!dateStr) return "N/A";
+            try {
+                const dateObj = new Date(dateStr);
+                if (isNaN(dateObj.getTime())) return dateStr; // fallback on raw text date
+
+                if (full) {
+                    return dateObj.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+
+                // Friendly short date representation
+                const now = new Date();
+                const diffTime = Math.abs(now - dateObj);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 0) {
+                    const diffHrs = Math.floor(diffTime / (1000 * 60 * 60));
+                    if (diffHrs === 0) {
+                        const diffMins = Math.floor(diffTime / (1000 * 60));
+                        return diffMins <= 1 ? "Just now" : `${diffMins}m ago`;
+                    }
+                    return `${diffHrs}h ago`;
+                } else if (diffDays === 1) {
+                    return "Yesterday";
+                } else if (diffDays < 7) {
+                    return `${diffDays}d ago`;
+                }
+
+                return dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            } catch {
+                return dateStr;
+            }
+        }
+    </script>
+</body>
+</html>
